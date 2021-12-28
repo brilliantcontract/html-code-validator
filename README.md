@@ -12,7 +12,7 @@ If you need any help with tuning of a Libre Office please contact me.
 
 
 
-HTML code real time viewer https://brilliantcontract.net/utilities/utilities/html-viewer.html
-HTML code validator https://brilliantcontract.net/utilities/utilities/html-code-validator.html
-LibreOffice macros to formatting HTML code https://github.com/brilliantcontract/html-code-validator/blob/master/libre-office-macros.bas
-Oracle database package to formatting HTML code https://github.com/brilliantcontract/html-code-validator/tree/master/oracle-plsql-package
+- HTML code real time viewer https://brilliantcontract.net/utilities/utilities/html-viewer.html
+- HTML code validator https://brilliantcontract.net/utilities/utilities/html-code-validator.html
+- LibreOffice macros to formatting HTML code https://github.com/brilliantcontract/html-code-validator/blob/master/libre-office-macros.bas
+- Oracle database package to formatting HTML code https://github.com/brilliantcontract/html-code-validator/tree/master/oracle-plsql-package
