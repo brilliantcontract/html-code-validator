@@ -15,6 +15,7 @@ create or replace NONEDITIONABLE PACKAGE BODY tidy_html_snippet_pkg AS
     FUNCTION convert_text_to_ul_list(i_html_snippet IN CLOB) RETURN CLOB;
     FUNCTION convert_ul_list_to_html_table(i_html_snippet IN CLOB) RETURN CLOB;
     FUNCTION create_headers(i_html_snippet IN CLOB) RETURN CLOB;
+    FUNCTION remove_twice_escaped_html_symbol_code(i_html_snippet IN CLOB) RETURN CLOB;
     FUNCTION tidy_html_table(i_html_snippet IN CLOB) RETURN CLOB;
     
     FUNCTION tidy(i_html_snippet IN CLOB) RETURN CLOB
@@ -32,8 +33,10 @@ create or replace NONEDITIONABLE PACKAGE BODY tidy_html_snippet_pkg AS
         l_html_snippet := unify_html_head_tag_levels(l_html_snippet);
         l_html_snippet := remove_not_allowed_html_tags(l_html_snippet);
         l_html_snippet := remove_empty_html_tags(l_html_snippet);
+        l_html_snippet := remove_twice_escaped_html_symbol_code(l_html_snippet);
         l_html_snippet := convert_text_to_ul_list(l_html_snippet);
         l_html_snippet := convert_ul_list_to_html_table(l_html_snippet);
+        l_html_snippet := tidy_html_table(l_html_snippet);
         l_html_snippet := tidy_html_table(l_html_snippet);
         l_html_snippet := create_headers(l_html_snippet);
         
@@ -51,6 +54,17 @@ create or replace NONEDITIONABLE PACKAGE BODY tidy_html_snippet_pkg AS
         
         RETURN l_html_snippet;
     END tidy;
+    
+    FUNCTION remove_twice_escaped_html_symbol_code(i_html_snippet IN CLOB) RETURN CLOB
+    IS
+        l_html_snippet CLOB;
+    BEGIN
+        l_html_snippet := i_html_snippet;
+        
+        l_html_snippet := REGEXP_REPLACE(l_html_snippet, '&amp;#([0-9a-zA-Z]{1,8});', '&#\1;', 1, 0, 'i');
+        
+        RETURN l_html_snippet;
+    END remove_twice_escaped_html_symbol_code;
     
     FUNCTION remove_intellectual_property_symbols_or_codes(i_html_snippet IN CLOB) RETURN CLOB
     IS
