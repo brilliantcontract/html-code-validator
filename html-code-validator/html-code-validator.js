@@ -71,7 +71,8 @@ class HtmlCodeValidator {
     isTableTagHasRequiredCssClass(htmlCode) {
         var message = "- HTML code contains a Table tag without mandatory \"description-table\" CSS class.";
         var regularExpressionOfTable = new RegExp("<TABLE");
-        var regularExpressionOfMandatoryClass = new RegExp("<TABLE CLASS=(\"|'|)DESCRIPTION\-TABLE(\"|'|)");
+        var regularExpressionOfMandatoryClass = new RegExp("<TABLE\\s+CLASS=(\"|'|)DESCRIPTION\-TABLE(\"|'|)");
+        
         if (regularExpressionOfTable.test(htmlCode)
                 && !regularExpressionOfMandatoryClass.test(htmlCode)) {
             return message;
@@ -104,7 +105,7 @@ class HtmlCodeValidator {
      */
     isTableTagHasTdTagInsideTheadTag(htmlCode) {
         var message = "- HTML code contains a Table tag with Thead tag and Td tag inside it.";
-        var regularExpression = new RegExp("<THEAD[^>]*>.*<TR[^>]*>.*<TD[^>]*>", "s");
+        var regularExpression = new RegExp("<THEAD[^>]*>[^<]*<TR[^>]*>[^<]*<TD[^>]*>", "s");
         if (regularExpression.test(htmlCode)) {
             return message;
         }
@@ -161,13 +162,13 @@ class HtmlCodeValidator {
     }
 
     /**
-     * Detect not closed pair of tags like "<p><p>Hello wordl</p>".
+     * Detect not closed pair of tags like "<p><p>Hello world</p>".
      * 
      * @param {type} htmlCode
      * @return {String}
      */
     isHtmlCodeContainsNotClosedTags(htmlCode) {
-        var message = "- HTML code contains not closed pair of tags like \"<p><p>Hello wordl</p>\".";
+        var message = "- HTML code contains not closed pair of tags like \"<p><p>Hello world</p>\".";
         for (let tagName of ["P", "A", "UL", "LI", "SPAN", "DIV", "TD", "TR", "TABLE",
             "TH", "DD", "DT"]) {
             if (!this.isAllTagsClosed(tagName, htmlCode)) {
@@ -182,19 +183,16 @@ class HtmlCodeValidator {
         let openTagsRegexp = new RegExp("<" + tagName + "[ >]", "g");
         let openTagsMatch = htmlCode.match(openTagsRegexp);
         let numberOfOpenTags = 0;
-        if(openTagsMatch !== null) {
+        if (openTagsMatch !== null) {
             numberOfOpenTags = openTagsMatch.length;
         }
-        
+
         let closeTagsRegexp = new RegExp("</" + tagName + ">", "g");
         let closedTagsMatch = htmlCode.match(closeTagsRegexp);
         let numberOfClosedTags = 0;
-        if(closedTagsMatch !== null) {
+        if (closedTagsMatch !== null) {
             numberOfClosedTags = closedTagsMatch.length;
         }
-        
-        console.log("Open: " + numberOfOpenTags);
-        console.log("Closed: " + numberOfClosedTags)
 
         if (numberOfOpenTags !== numberOfClosedTags) {
             return false;
@@ -457,8 +455,9 @@ class HtmlCodeValidator {
      * @return {String}
      */
     isHtmlCodeContainsClassAttribute(htmlCode) {
-// Table tag allowed to have a Class attribute with "description-table" value.
-        htmlCode = htmlCode.replace(/<TABLE CLASS=(\"|'|)DESCRIPTION\-TABLE(\"|'|)/, "");
+        // Table tag allowed to have a Class attribute with "description-table" value.
+        htmlCode = htmlCode.replace(/<TABLE\s+CLASS=(\"|'|)DESCRIPTION\-TABLE(\"|'|)/g, "");
+        
         return this.isHtmlCodeContainsTheAttribute(htmlCode, "CLASS");
     }
 
