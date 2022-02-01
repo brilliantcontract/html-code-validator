@@ -26,7 +26,7 @@
                     assert.equal(htmlCodeValidator.validateHtmlCode("<p>\n</p>"), "- HTML code contains empty tags like \"<p></p>\".", "<p>\\n</p>");
                     assert.equal(htmlCodeValidator.validateHtmlCode("<p>\r</p>"), "- HTML code contains empty tags like \"<p></p>\".", "<p>\\r</p>");
                     assert.equal(htmlCodeValidator.validateHtmlCode("<p> \r\n\t</p>"), "- HTML code contains empty tags like \"<p></p>\".", "<p> \\r\\n\\t</p>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), 0, "There is no HTML tags.");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), "- HTML code has to start and end with HTML tags.", "There is no HTML tags.");
                 });
 
                 QUnit.test("Recognize restricted intellectual property symbols and codes.", function (assert) {
@@ -34,14 +34,34 @@
                     assert.equal(htmlCodeValidator.validateHtmlCode("<P>&trade;</p>"), "- HTML code contains intellectual property symbols or codes.", "<P>&trade;</p>");
                     assert.equal(htmlCodeValidator.validateHtmlCode("<p>&#8482;</P>"), "- HTML code contains intellectual property symbols or codes.", "<p>&#8482;</P>");
                     assert.equal(htmlCodeValidator.validateHtmlCode("<P >&#x2122;</p>"), "- HTML code contains intellectual property symbols or codes.", "&#x2122;<p>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("®"), "- HTML code contains intellectual property symbols or codes.", "®");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("®")[0], "- HTML code contains intellectual property symbols or codes.", "®");
                     assert.equal(htmlCodeValidator.validateHtmlCode("<P >Oracle&REG;</p>"), "- HTML code contains intellectual property symbols or codes.", "<P >Oracle&REG;");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("&#174;<p >Oracle</p>"), "- HTML code contains intellectual property symbols or codes.", "&#174;<p >Oracle</p>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("<P>Oracle</p>©"), "- HTML code contains intellectual property symbols or codes.", "<P>Oracle</p>©");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("&#174;<p >Oracle</p>")[0], "- HTML code contains intellectual property symbols or codes.", "&#174;<p >Oracle</p>");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("<P>Oracle</p>©")[0], "- HTML code contains intellectual property symbols or codes.", "<P>Oracle</p>©");
                     assert.equal(htmlCodeValidator.validateHtmlCode("<p>&COPY;</P>"), "- HTML code contains intellectual property symbols or codes.", "<p>&COPY;</P>");
                     assert.equal(htmlCodeValidator.validateHtmlCode("<p >&#169;</P>"), "- HTML code contains intellectual property symbols or codes.", "<p >&#169;");
                     assert.equal(htmlCodeValidator.validateHtmlCode("<P>&#00A9;</p>"), "- HTML code contains intellectual property symbols or codes.", "<P>&#00A9;");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), 0, "There is no HTML tags.");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), "- HTML code has to start and end with HTML tags.", "There is no HTML tags.");
+                });
+
+                QUnit.test("Recognize HTML code starts and ends with HTML tags.", function (assert) {
+                    assert.equal(htmlCodeValidator.validateHtmlCode("p >Oracle</p>")[1], "- HTML code has to start and end with HTML tags.", "p >Oracle</p>");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("P>Microsoft\n</p>")[1], "- HTML code has to start and end with HTML tags.", "P>Microsoft\n</p>");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("<p>\nIBM</P")[1], "- HTML code has to start and end with HTML tags.", "<p>\nIBM</P");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("<P >Sony</p")[1], "- HTML code has to start and end with HTML tags.", "<P >Sony</p");
+                    
+                    assert.equal(htmlCodeValidator.validateHtmlCode("<p >Oracle</p>"), 0, "<p >Oracle</p>");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("<P>Microsoft\n</p>"), 0, "<P>Microsoft\n</p>");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("<p>\nIBM</P>"), 0, "<p>\nIBM</P>");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("<P >Sony</p>"), 0, "<P >Sony</p>");
+                    
+                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), "- HTML code has to start and end with HTML tags.", "There is no HTML tags.");
+                });
+
+                QUnit.test("HTML code contains wrong nested tags. For example \"<p><table>...</table></p>\".", function (assert) {
+                    assert.equal(htmlCodeValidator.validateHtmlCode("<p><p>Oracle</p></p>"), "- HTML code contains wrong nested tags like \"<p><table>...</table></p>\".", "<p><p>Oracle</p></p>");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("<p><table>Oracle</table></p>")[0], "- HTML code contains wrong nested tags like \"<p><table>...</table></p>\".", "<p><table>Oracle</table></p>");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("<p><ul>Oracle</ul></p>"), "- HTML code contains wrong nested tags like \"<p><table>...</table></p>\".", "<p><ul>Oracle</ul></p>");
                 });
             });
 
@@ -53,7 +73,7 @@
                     assert.equal(htmlCodeValidator.validateHtmlCode("<LI class='c27'>Hello World!</LI>"), "- HTML code contains Class attribute(s).", "<LI class='c27'>Hello World!");
                     assert.equal(htmlCodeValidator.validateHtmlCode("<table class='description-table'><tr><td></td></tr></table>"), 0, "<table class='description-table'><tr><td></td></tr></table>");
                     assert.equal(htmlCodeValidator.validateHtmlCode("<table class='description-table'><tr><td></td></tr></table><table class='description-table'><tr><td></td></tr></table>"), 0, "<table class='description-table'><tr><td></td></tr></table><table class='description-table'><tr><td></td></tr></table>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), 0, "There is no HTML tags.");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), "- HTML code has to start and end with HTML tags.", "There is no HTML tags.");
                 });
 
                 QUnit.test("Recognize restricted Id attribute.", function (assert) {
@@ -61,7 +81,7 @@
                     assert.equal(htmlCodeValidator.validateHtmlCode("<li Id=\"c27\">Hello World!</LI>"), "- HTML code contains Id attribute(s).", "<li Id=\"c27\">Hello World!");
                     assert.equal(htmlCodeValidator.validateHtmlCode("<Li ID=c27 >Hello World!</li>"), "- HTML code contains Id attribute(s).", "<Li ID=c27 >Hello World!</li>");
                     assert.equal(htmlCodeValidator.validateHtmlCode("<LI id='c27'>Hello World!</li>"), "- HTML code contains Id attribute(s).", "<LI id='c27'>Hello World!");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), 0, "There is no HTML tags.");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), "- HTML code has to start and end with HTML tags.", "There is no HTML tags.");
                 });
 
                 QUnit.test("Recognize restricted Style attribute.", function (assert) {
@@ -69,7 +89,7 @@
                     assert.equal(htmlCodeValidator.validateHtmlCode("<li Style=\"c27\">Hello World!</LI>"), "- HTML code contains Style attribute(s).", "<li Style=\"c27\">Hello World!");
                     assert.equal(htmlCodeValidator.validateHtmlCode("<Li STYLE=c27 >Hello World!</li>"), "- HTML code contains Style attribute(s).", "<Li STYLE=c27 >Hello World!</li>");
                     assert.equal(htmlCodeValidator.validateHtmlCode("<LI style='c27'>Hello World!</li>"), "- HTML code contains Style attribute(s).", "<LI style='c27'>Hello World!");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), 0, "There is no HTML tags.");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), "- HTML code has to start and end with HTML tags.", "There is no HTML tags.");
                 });
             });
 
@@ -81,7 +101,7 @@
                     assert.equal(htmlCodeValidator.validateHtmlCode("<div >Hello World!</div>"), "- HTML code contains Div tag(s).", "<div>Hello World!</div>");
                     assert.equal(htmlCodeValidator.validateHtmlCode("<DIV>Hello World!</div>"), "- HTML code contains Div tag(s).", "<div>Hello World!");
                     assert.equal(htmlCodeValidator.validateHtmlCode("<Div >Hello World!</Div>"), "- HTML code contains Div tag(s).", "Hello World!</div>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), 0, "There is no HTML tags.");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), "- HTML code has to start and end with HTML tags.", "There is no HTML tags.");
                 });
 
                 QUnit.test("Recognize restricted Span tag.", function (assert) {
@@ -91,7 +111,7 @@
                     assert.equal(htmlCodeValidator.validateHtmlCode("<span >Hello World!</span>"), "- HTML code contains Span tag(s).", "<span >Hello World!</span>");
                     assert.equal(htmlCodeValidator.validateHtmlCode("<SPAN>Hello World!</SPAn>"), "- HTML code contains Span tag(s).", "<SPAN>Hello World!");
                     assert.equal(htmlCodeValidator.validateHtmlCode("<Span>Hello World!</Span>"), "- HTML code contains Span tag(s).", "Hello World!</Span>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), 0, "There is no HTML tags.");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), "- HTML code has to start and end with HTML tags.", "There is no HTML tags.");
                 });
 
                 QUnit.test("Recognize restricted S tag.", function (assert) {
@@ -101,7 +121,7 @@
                     assert.equal(htmlCodeValidator.validateHtmlCode("<s >Hello World!</s>"), "- HTML code contains S tag(s).", "<s >Hello World!</s>");
                     assert.equal(htmlCodeValidator.validateHtmlCode("<S>Hello World!</S>"), "- HTML code contains S tag(s).", "<S>Hello World!");
                     assert.equal(htmlCodeValidator.validateHtmlCode("<s >Hello World!</S>"), "- HTML code contains S tag(s).", "Hello World!</S>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), 0, "There is no HTML tags.");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), "- HTML code has to start and end with HTML tags.", "There is no HTML tags.");
                 });
 
                 QUnit.test("Recognize restricted Strong tag.", function (assert) {
@@ -111,7 +131,7 @@
                     assert.equal(htmlCodeValidator.validateHtmlCode("<strong >Hello World!</strong>"), "- HTML code contains Strong tag(s).", "<strong>Hello World!</strong>");
                     assert.equal(htmlCodeValidator.validateHtmlCode("<STRONG>Hello World!</Strong>"), "- HTML code contains Strong tag(s).", "<STRONG>Hello World!");
                     assert.equal(htmlCodeValidator.validateHtmlCode("<STRong >Hello World!</Strong>"), "- HTML code contains Strong tag(s).", "Hello World!</Strong>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), 0, "There is no HTML tags.");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), "- HTML code has to start and end with HTML tags.", "There is no HTML tags.");
                 });
 
                 QUnit.test("Recognize restricted B tag.", function (assert) {
@@ -121,127 +141,127 @@
                     assert.equal(htmlCodeValidator.validateHtmlCode("<b >Hello World!</b>"), "- HTML code contains B tag(s).", "<b >Hello World!</b>");
                     assert.equal(htmlCodeValidator.validateHtmlCode("<B>Hello World!</b>"), "- HTML code contains B tag(s).", "<B>Hello World!");
                     assert.equal(htmlCodeValidator.validateHtmlCode("<b >Hello World!</B>"), "- HTML code contains B tag(s).", "Hello World!</B>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), 0, "There is no HTML tags.");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), "- HTML code has to start and end with HTML tags.", "There is no HTML tags.");
                 });
 
                 QUnit.test("Recognize restricted Iframe tag.", function (assert) {
                     assert.equal(htmlCodeValidator.validateHtmlCode("<iframe>Hello World!</iframe>"), "- HTML code contains Iframe tag(s).", "<iframe>Hello World!</iframe>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("<iframe>Hello World!"), "- HTML code contains Iframe tag(s).", "<iframe>Hello World!");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</iframe>"), "- HTML code contains Iframe tag(s).", "Hello World!</iframe>");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("<iframe>Hello World!")[1], "- HTML code contains Iframe tag(s).", "<iframe>Hello World!");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</iframe>")[1], "- HTML code contains Iframe tag(s).", "Hello World!</iframe>");
                     assert.equal(htmlCodeValidator.validateHtmlCode("<iframe >Hello World!</iframe>"), "- HTML code contains Iframe tag(s).", "<iframe >Hello World!</iframe>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("<IFRAME>Hello World!"), "- HTML code contains Iframe tag(s).", "<IFRAME>Hello World!");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</Iframe>"), "- HTML code contains Iframe tag(s).", "Hello World!</Iframe>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), 0, "There is no HTML tags.");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("<IFRAME>Hello World!")[1], "- HTML code contains Iframe tag(s).", "<IFRAME>Hello World!");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</Iframe>")[1], "- HTML code contains Iframe tag(s).", "Hello World!</Iframe>");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), "- HTML code has to start and end with HTML tags.", "There is no HTML tags.");
                 });
 
                 QUnit.test("Recognize restricted Frame tag.", function (assert) {
                     assert.equal(htmlCodeValidator.validateHtmlCode("<frame>Hello World!</frame>"), "- HTML code contains Frame tag(s).", "<frame>Hello World!</frame>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("<frame>Hello World!"), "- HTML code contains Frame tag(s).", "<frame>Hello World!");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</frame>"), "- HTML code contains Frame tag(s).", "Hello World!</frame>");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("<frame>Hello World!")[1], "- HTML code contains Frame tag(s).", "<frame>Hello World!");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</frame>")[1], "- HTML code contains Frame tag(s).", "Hello World!</frame>");
                     assert.equal(htmlCodeValidator.validateHtmlCode("<frame >Hello World!</frame>"), "- HTML code contains Frame tag(s).", "<frame >Hello World!</frame>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("<FRAME>Hello World!"), "- HTML code contains Frame tag(s).", "<FRAME>Hello World!");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</Frame>"), "- HTML code contains Frame tag(s).", "Hello World!</Frame>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), 0, "There is no HTML tags.");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("<FRAME>Hello World!")[1], "- HTML code contains Frame tag(s).", "<FRAME>Hello World!");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</Frame>")[1], "- HTML code contains Frame tag(s).", "Hello World!</Frame>");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), "- HTML code has to start and end with HTML tags.", "There is no HTML tags.");
                 });
 
                 QUnit.test("Recognize restricted Object tag.", function (assert) {
                     assert.equal(htmlCodeValidator.validateHtmlCode("<object>Hello World!</object>"), "- HTML code contains Object tag(s).", "<object>Hello World!</object>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("<object>Hello World!"), "- HTML code contains Object tag(s).", "<object>Hello World!");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</object>"), "- HTML code contains Object tag(s).", "Hello World!</object>");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("<object>Hello World!")[1], "- HTML code contains Object tag(s).", "<object>Hello World!");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</object>")[1], "- HTML code contains Object tag(s).", "Hello World!</object>");
                     assert.equal(htmlCodeValidator.validateHtmlCode("<object >Hello World!</object>"), "- HTML code contains Object tag(s).", "<object >Hello World!</object>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("<OBJECT>Hello World!"), "- HTML code contains Object tag(s).", "<OBJECT>Hello World!");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</Object>"), "- HTML code contains Object tag(s).", "Hello World!</Object>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), 0, "There is no HTML tags.");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("<OBJECT>Hello World!")[1], "- HTML code contains Object tag(s).", "<OBJECT>Hello World!");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</Object>")[1], "- HTML code contains Object tag(s).", "Hello World!</Object>");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), "- HTML code has to start and end with HTML tags.", "There is no HTML tags.");
                 });
 
                 QUnit.test("Recognize restricted Embed tag.", function (assert) {
                     assert.equal(htmlCodeValidator.validateHtmlCode("<embed>Hello World!</embed>"), "- HTML code contains Embed tag(s).", "<embed>Hello World!</embed>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("<embed>Hello World!"), "- HTML code contains Embed tag(s).", "<embed>Hello World!");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</embed>"), "- HTML code contains Embed tag(s).", "Hello World!</embed>");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("<embed>Hello World!")[1], "- HTML code contains Embed tag(s).", "<embed>Hello World!");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</embed>")[1], "- HTML code contains Embed tag(s).", "Hello World!</embed>");
                     assert.equal(htmlCodeValidator.validateHtmlCode("<embed >Hello World!</embed>"), "- HTML code contains Embed tag(s).", "<embed >Hello World!</embed>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("<EMBED>Hello World!"), "- HTML code contains Embed tag(s).", "<EMBED>Hello World!");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</Embed>"), "- HTML code contains Embed tag(s).", "Hello World!</Embed>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), 0, "There is no HTML tags.");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("<EMBED>Hello World!")[1], "- HTML code contains Embed tag(s).", "<EMBED>Hello World!");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</Embed>")[1], "- HTML code contains Embed tag(s).", "Hello World!</Embed>");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), "- HTML code has to start and end with HTML tags.", "There is no HTML tags.");
                 });
 
                 QUnit.test("Recognize restricted Script tag.", function (assert) {
                     assert.equal(htmlCodeValidator.validateHtmlCode("<script>Hello World!<" + "/script>"), "- HTML code contains Script tag(s).", "<script>Hello World!<" + "/script>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("<script>Hello World!"), "- HTML code contains Script tag(s).", "<script>Hello World!");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!<" + "/script>"), "- HTML code contains Script tag(s).", "Hello World!<" + "/script>");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("<script>Hello World!")[1], "- HTML code contains Script tag(s).", "<script>Hello World!");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!<" + "/script>")[1], "- HTML code contains Script tag(s).", "Hello World!<" + "/script>");
                     assert.equal(htmlCodeValidator.validateHtmlCode("<script >Hello World!<" + "/script>"), "- HTML code contains Script tag(s).", "<script >Hello World!<" + "/script>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("<SCRIPT>Hello World!"), "- HTML code contains Script tag(s).", "<SCRIPT>Hello World!");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!<" + "/script>"), "- HTML code contains Script tag(s).", "Hello World!<" + "/script>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), 0, "There is no HTML tags.");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("<SCRIPT>Hello World!")[1], "- HTML code contains Script tag(s).", "<SCRIPT>Hello World!");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!<" + "/script>")[1], "- HTML code contains Script tag(s).", "Hello World!<" + "/script>");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), "- HTML code has to start and end with HTML tags.", "There is no HTML tags.");
                 });
 
                 QUnit.test("Recognize restricted Noscript tag.", function (assert) {
                     assert.equal(htmlCodeValidator.validateHtmlCode("<noscript>Hello World!</noscript>"), "- HTML code contains Noscript tag(s).", "<noscript>Hello World!</noscript>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("<noscript>Hello World!"), "- HTML code contains Noscript tag(s).", "<noscript>Hello World!");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</noscript>"), "- HTML code contains Noscript tag(s).", "Hello World!</noscript>");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("<noscript>Hello World!")[1], "- HTML code contains Noscript tag(s).", "<noscript>Hello World!");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</noscript>")[1], "- HTML code contains Noscript tag(s).", "Hello World!</noscript>");
                     assert.equal(htmlCodeValidator.validateHtmlCode("<noscript >Hello World!</noscript>"), "- HTML code contains Noscript tag(s).", "<noscript >Hello World!</noscript>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("<NOSCRIPT>Hello World!"), "- HTML code contains Noscript tag(s).", "<NOSCRIPT>Hello World!");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</Noscript>"), "- HTML code contains Noscript tag(s).", "Hello World!</Noscript>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), 0, "There is no HTML tags.");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("<NOSCRIPT>Hello World!")[1], "- HTML code contains Noscript tag(s).", "<NOSCRIPT>Hello World!");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</Noscript>")[1], "- HTML code contains Noscript tag(s).", "Hello World!</Noscript>");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), "- HTML code has to start and end with HTML tags.", "There is no HTML tags.");
                 });
 
                 QUnit.test("Recognize restricted H1 tag.", function (assert) {
                     assert.equal(htmlCodeValidator.validateHtmlCode("<h1>Hello World!</h1>"), "- HTML code contains H1 tag(s). Header(s) should be replaced with H5 tag.", "<h1>Hello World!</h1>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("<h1>Hello World!"), "- HTML code contains H1 tag(s). Header(s) should be replaced with H5 tag.", "<h1>Hello World!");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</h1>"), "- HTML code contains H1 tag(s). Header(s) should be replaced with H5 tag.", "Hello World!</h1>");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("<h1>Hello World!")[1], "- HTML code contains H1 tag(s). Header(s) should be replaced with H5 tag.", "<h1>Hello World!");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</h1>")[1], "- HTML code contains H1 tag(s). Header(s) should be replaced with H5 tag.", "Hello World!</h1>");
                     assert.equal(htmlCodeValidator.validateHtmlCode("<h1 >Hello World!</h1>"), "- HTML code contains H1 tag(s). Header(s) should be replaced with H5 tag.", "<h1 >Hello World!</h1>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("<H1>Hello World!"), "- HTML code contains H1 tag(s). Header(s) should be replaced with H5 tag.", "<H1>Hello World!");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</H1>"), "- HTML code contains H1 tag(s). Header(s) should be replaced with H5 tag.", "Hello World!</H1>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), 0, "There is no HTML tags.");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("<H1>Hello World!")[1], "- HTML code contains H1 tag(s). Header(s) should be replaced with H5 tag.", "<H1>Hello World!");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</H1>")[1], "- HTML code contains H1 tag(s). Header(s) should be replaced with H5 tag.", "Hello World!</H1>");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), "- HTML code has to start and end with HTML tags.", "There is no HTML tags.");
                 });
 
                 QUnit.test("Recognize restricted H2 tag.", function (assert) {
                     assert.equal(htmlCodeValidator.validateHtmlCode("<h2>Hello World!</h2>"), "- HTML code contains H2 tag(s). Header(s) should be replaced with H5 tag.", "<h2>Hello World!</h2>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("<h2>Hello World!"), "- HTML code contains H2 tag(s). Header(s) should be replaced with H5 tag.", "<h2>Hello World!");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</h2>"), "- HTML code contains H2 tag(s). Header(s) should be replaced with H5 tag.", "Hello World!</h2>");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("<h2>Hello World!")[1], "- HTML code contains H2 tag(s). Header(s) should be replaced with H5 tag.", "<h2>Hello World!");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</h2>")[1], "- HTML code contains H2 tag(s). Header(s) should be replaced with H5 tag.", "Hello World!</h2>");
                     assert.equal(htmlCodeValidator.validateHtmlCode("<h2 >Hello World!</h2>"), "- HTML code contains H2 tag(s). Header(s) should be replaced with H5 tag.", "<h2 >Hello World!</h2>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("<H2>Hello World!"), "- HTML code contains H2 tag(s). Header(s) should be replaced with H5 tag.", "<H2>Hello World!");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</H2>"), "- HTML code contains H2 tag(s). Header(s) should be replaced with H5 tag.", "Hello World!</H2>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), 0, "There is no HTML tags.");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("<H2>Hello World!")[1], "- HTML code contains H2 tag(s). Header(s) should be replaced with H5 tag.", "<H2>Hello World!");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</H2>")[1], "- HTML code contains H2 tag(s). Header(s) should be replaced with H5 tag.", "Hello World!</H2>");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), "- HTML code has to start and end with HTML tags.", "There is no HTML tags.");
                 });
 
                 QUnit.test("Recognize restricted H3 tag.", function (assert) {
                     assert.equal(htmlCodeValidator.validateHtmlCode("<h3>Hello World!</h3>"), "- HTML code contains H3 tag(s). Header(s) should be replaced with H5 tag.", "<h3>Hello World!</h3>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("<h3>Hello World!"), "- HTML code contains H3 tag(s). Header(s) should be replaced with H5 tag.", "<h3>Hello World!");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</h3>"), "- HTML code contains H3 tag(s). Header(s) should be replaced with H5 tag.", "Hello World!</h3>");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("<h3>Hello World!")[1], "- HTML code contains H3 tag(s). Header(s) should be replaced with H5 tag.", "<h3>Hello World!");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</h3>")[1], "- HTML code contains H3 tag(s). Header(s) should be replaced with H5 tag.", "Hello World!</h3>");
                     assert.equal(htmlCodeValidator.validateHtmlCode("<h3 >Hello World!</h3>"), "- HTML code contains H3 tag(s). Header(s) should be replaced with H5 tag.", "<h3 >Hello World!</h3>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("<H3>Hello World!"), "- HTML code contains H3 tag(s). Header(s) should be replaced with H5 tag.", "<H3>Hello World!");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</H3>"), "- HTML code contains H3 tag(s). Header(s) should be replaced with H5 tag.", "Hello World!</H3>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), 0, "There is no HTML tags.");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("<H3>Hello World!")[1], "- HTML code contains H3 tag(s). Header(s) should be replaced with H5 tag.", "<H3>Hello World!");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</H3>")[1], "- HTML code contains H3 tag(s). Header(s) should be replaced with H5 tag.", "Hello World!</H3>");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), "- HTML code has to start and end with HTML tags.", "There is no HTML tags.");
                 });
 
                 QUnit.test("Recognize restricted H4 tag.", function (assert) {
                     assert.equal(htmlCodeValidator.validateHtmlCode("<h4>Hello World!</h4>"), "- HTML code contains H4 tag(s). Header(s) should be replaced with H5 tag.", "<h4>Hello World!</h4>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("<h4>Hello World!"), "- HTML code contains H4 tag(s). Header(s) should be replaced with H5 tag.", "<h4>Hello World!");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</h4>"), "- HTML code contains H4 tag(s). Header(s) should be replaced with H5 tag.", "Hello World!</h4>");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("<h4>Hello World!")[1], "- HTML code contains H4 tag(s). Header(s) should be replaced with H5 tag.", "<h4>Hello World!");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</h4>")[1], "- HTML code contains H4 tag(s). Header(s) should be replaced with H5 tag.", "Hello World!</h4>");
                     assert.equal(htmlCodeValidator.validateHtmlCode("<h4 >Hello World!</h4>"), "- HTML code contains H4 tag(s). Header(s) should be replaced with H5 tag.", "<h4 >Hello World!</h4>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("<H4>Hello World!"), "- HTML code contains H4 tag(s). Header(s) should be replaced with H5 tag.", "<H4>Hello World!");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</H4>"), "- HTML code contains H4 tag(s). Header(s) should be replaced with H5 tag.", "Hello World!</H4>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), 0, "There is no HTML tags.");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("<H4>Hello World!")[1], "- HTML code contains H4 tag(s). Header(s) should be replaced with H5 tag.", "<H4>Hello World!");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</H4>")[1], "- HTML code contains H4 tag(s). Header(s) should be replaced with H5 tag.", "Hello World!</H4>");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), "- HTML code has to start and end with HTML tags.", "There is no HTML tags.");
                 });
 
                 QUnit.test("Recognize restricted H6 tag.", function (assert) {
                     assert.equal(htmlCodeValidator.validateHtmlCode("<h6>Hello World!</h6>"), "- HTML code contains H6 tag(s). Header(s) should be replaced with H5 tag.", "<h6>Hello World!</h6>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("<h6>Hello World!"), "- HTML code contains H6 tag(s). Header(s) should be replaced with H5 tag.", "<h6>Hello World!");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</h6>"), "- HTML code contains H6 tag(s). Header(s) should be replaced with H5 tag.", "Hello World!</h6>");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("<h6>Hello World!")[1], "- HTML code contains H6 tag(s). Header(s) should be replaced with H5 tag.", "<h6>Hello World!");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</h6>")[1], "- HTML code contains H6 tag(s). Header(s) should be replaced with H5 tag.", "Hello World!</h6>");
                     assert.equal(htmlCodeValidator.validateHtmlCode("<h6 >Hello World!</h6>"), "- HTML code contains H6 tag(s). Header(s) should be replaced with H5 tag.", "<h6 >Hello World!</h6>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("<H6>Hello World!"), "- HTML code contains H6 tag(s). Header(s) should be replaced with H5 tag.", "<H6>Hello World!");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</H6>"), "- HTML code contains H6 tag(s). Header(s) should be replaced with H5 tag.", "Hello World!</H6>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), 0, "There is no HTML tags.");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("<H6>Hello World!")[1], "- HTML code contains H6 tag(s). Header(s) should be replaced with H5 tag.", "<H6>Hello World!");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</H6>")[1], "- HTML code contains H6 tag(s). Header(s) should be replaced with H5 tag.", "Hello World!</H6>");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), "- HTML code has to start and end with HTML tags.", "There is no HTML tags.");
                 });
 
                 QUnit.test("Recognize restricted Img tag.", function (assert) {
                     assert.equal(htmlCodeValidator.validateHtmlCode("<img>Hello World!</img>"), "- HTML code contains Img tag(s). If image(s) seem to be important (diagrams, CAD drawings, etc), then extract their urls and put them in a file for the documents section.", "<img>Hello World!</img>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("<img>Hello World!"), "- HTML code contains Img tag(s). If image(s) seem to be important (diagrams, CAD drawings, etc), then extract their urls and put them in a file for the documents section.", "<img>Hello World!");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</img>"), "- HTML code contains Img tag(s). If image(s) seem to be important (diagrams, CAD drawings, etc), then extract their urls and put them in a file for the documents section.", "Hello World!</img>");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("<img>Hello World!")[1], "- HTML code contains Img tag(s). If image(s) seem to be important (diagrams, CAD drawings, etc), then extract their urls and put them in a file for the documents section.", "<img>Hello World!");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</img>")[1], "- HTML code contains Img tag(s). If image(s) seem to be important (diagrams, CAD drawings, etc), then extract their urls and put them in a file for the documents section.", "Hello World!</img>");
                     assert.equal(htmlCodeValidator.validateHtmlCode("<img >Hello World!</img>"), "- HTML code contains Img tag(s). If image(s) seem to be important (diagrams, CAD drawings, etc), then extract their urls and put them in a file for the documents section.", "<img >Hello World!</img>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("<IMG>Hello World!"), "- HTML code contains Img tag(s). If image(s) seem to be important (diagrams, CAD drawings, etc), then extract their urls and put them in a file for the documents section.", "<IMG>Hello World!");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</Img>"), "- HTML code contains Img tag(s). If image(s) seem to be important (diagrams, CAD drawings, etc), then extract their urls and put them in a file for the documents section.", "Hello World!</Img>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), 0, "There is no HTML tags.");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("<IMG>Hello World!")[1], "- HTML code contains Img tag(s). If image(s) seem to be important (diagrams, CAD drawings, etc), then extract their urls and put them in a file for the documents section.", "<IMG>Hello World!");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("Hello World!</Img>")[1], "- HTML code contains Img tag(s). If image(s) seem to be important (diagrams, CAD drawings, etc), then extract their urls and put them in a file for the documents section.", "Hello World!</Img>");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), "- HTML code has to start and end with HTML tags.", "There is no HTML tags.");
                 });
 
                 QUnit.test("Recognize restricted A tag.", function (assert) {
@@ -251,7 +271,7 @@
                     assert.equal(htmlCodeValidator.validateHtmlCode("<a >Hello World!</a>"), "- HTML code contains A tag(s). Links should be removed/transformed taking into consideration their surrounding context.", "<a >Hello World!</a>");
                     assert.equal(htmlCodeValidator.validateHtmlCode("<A>Hello World!</a>"), "- HTML code contains A tag(s). Links should be removed/transformed taking into consideration their surrounding context.", "<A>Hello World!");
                     assert.equal(htmlCodeValidator.validateHtmlCode("<a >Hello World!</A>"), "- HTML code contains A tag(s). Links should be removed/transformed taking into consideration their surrounding context.", "Hello World!</A>");
-                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), 0, "There is no HTML tags. Links should be removed/transformed taking into consideration their surrounding context.", "There is no HTML tags.");
+                    assert.equal(htmlCodeValidator.validateHtmlCode("There is no HTML tags."), "- HTML code has to start and end with HTML tags.", "There is no HTML tags. Links should be removed/transformed taking into consideration their surrounding context.", "There is no HTML tags.");
                 });
             });
         </script>

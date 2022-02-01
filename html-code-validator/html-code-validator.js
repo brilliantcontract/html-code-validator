@@ -25,6 +25,8 @@ class HtmlCodeValidator {
         foundIssues.push(this.isHtmlCodeContainsHiddenElements(htmlCode));
         foundIssues.push(this.isHtmlCodeContainsBrokenCharacterEncoding(htmlCode));
         foundIssues.push(this.isHtmlCodeContainsNotClosedTags(htmlCode));
+        foundIssues.push(this.isHtmlCodeStartsAndEndsWithTags(htmlCode));
+        foundIssues.push(this.isHtmlCodeContainsWrongNestedTags(htmlCode));
 
         // Check validity of complex Table HTML tags in the HTML code.
         foundIssues.push(this.isTableTagHasRequiredCssClass(htmlCode));
@@ -68,13 +70,97 @@ class HtmlCodeValidator {
      * @param {type} htmlCode
      * @return {String}
      */
+    isHtmlCodeStartsAndEndsWithTags(htmlCode) {
+        var message = "- HTML code has to start and end with HTML tags.";
+        var regexpOfBeginTag = new RegExp("^<[^>]+>");
+        var regexpOfFinishTag = new RegExp("<[^>]+>$");
+
+        if (!regexpOfBeginTag.test(htmlCode)
+                || !regexpOfFinishTag.test(htmlCode)) {
+            return message;
+        }
+
+        return null;
+    }
+
+    /**
+     * HTML code contains wrong nested tags. For example "<p><table>...</table></p>".
+     * 
+     * @param {type} htmlCode
+     * @return {String}
+     */
+    isHtmlCodeContainsWrongNestedTags(htmlCode) {
+        var message = "- HTML code contains wrong nested tags like \"<p><table>...</table></p>\".";
+
+        var regexpOfPNestedPTags = new RegExp("<P( [^>]*)?>[^<]*<P( [^>]*)?>");
+        
+        // Table structures nested into P tag.
+        var regexpOfPNestedTableTags = new RegExp("<P( [^>]*)?>[^<]*<TABLE( [^>]*)?>");
+        var regexpOfPNestedTrTags = new RegExp("<P( [^>]*)?>[^<]*<TR( [^>]*)?>");
+        var regexpOfPNestedTdTags = new RegExp("<P( [^>]*)?>[^<]*<TD( [^>]*)?>");
+        var regexpOfPNestedThTags = new RegExp("<P( [^>]*)?>[^<]*<TH( [^>]*)?>");
+        var regexpOfPNestedTheadTags = new RegExp("<P( [^>]*)?>[^<]*<THEAD( [^>]*)?>");
+        var regexpOfPNestedTbodyTags = new RegExp("<P( [^>]*)?>[^<]*<TBODY( [^>]*)?>");
+
+        // List structures nested into P tag.
+        var regexpOfPNestedUlTags = new RegExp("<P( [^>]*)?>[^<]*<UL( [^>]*)?>");
+        var regexpOfPNestedOlTags = new RegExp("<P( [^>]*)?>[^<]*<OL( [^>]*)?>");
+        var regexpOfPNestedLiTags = new RegExp("<P( [^>]*)?>[^<]*<LI( [^>]*)?>");
+        var regexpOfPNestedDlTags = new RegExp("<P( [^>]*)?>[^<]*<DL( [^>]*)?>");
+        var regexpOfPNestedDtTags = new RegExp("<P( [^>]*)?>[^<]*<DT( [^>]*)?>");
+        var regexpOfPNestedDdTags = new RegExp("<P( [^>]*)?>[^<]*<DD( [^>]*)?>");
+
+        // Table structures nested into Table tags.
+        var regexpOfTableNestedTableTags = new RegExp("<TABLE( [^>]*)?>[^<]*<TABLE( [^>]*)?>");
+        var regexpOfTrNestedTableTags = new RegExp("<TR( [^>]*)?>[^<]*<TABLE( [^>]*)?>");
+        var regexpOfTdNestedTableTags = new RegExp("<TD( [^>]*)?>[^<]*<TABLE( [^>]*)?>");
+        var regexpOfThNestedTableTags = new RegExp("<TH( [^>]*)?>[^<]*<TABLE( [^>]*)?>");
+        var regexpOfTheadNestedTableTags = new RegExp("<THEAD( [^>]*)?>[^<]*<TABLE( [^>]*)?>");
+        var regexpOfTbodyNestedTableTags = new RegExp("<TBODY( [^>]*)?>[^<]*<TABLE( [^>]*)?>");
+
+        if (
+                regexpOfPNestedPTags.test(htmlCode)
+        
+                || regexpOfPNestedTableTags.test(htmlCode)
+                || regexpOfPNestedTrTags.test(htmlCode)
+                || regexpOfPNestedTdTags.test(htmlCode)
+                || regexpOfPNestedThTags.test(htmlCode)
+                || regexpOfPNestedTheadTags.test(htmlCode)
+                || regexpOfPNestedTbodyTags.test(htmlCode)
+
+                || regexpOfPNestedUlTags.test(htmlCode)
+                || regexpOfPNestedOlTags.test(htmlCode)
+                || regexpOfPNestedLiTags.test(htmlCode)
+                || regexpOfPNestedDlTags.test(htmlCode)
+                || regexpOfPNestedDtTags.test(htmlCode)
+                || regexpOfPNestedDdTags.test(htmlCode)
+
+                || regexpOfTableNestedTableTags.test(htmlCode)
+                || regexpOfTrNestedTableTags.test(htmlCode)
+                || regexpOfTdNestedTableTags.test(htmlCode)
+                || regexpOfThNestedTableTags.test(htmlCode)
+                || regexpOfTheadNestedTableTags.test(htmlCode)
+                || regexpOfTbodyNestedTableTags.test(htmlCode)
+                ) {
+            return message;
+        }
+
+        return null;
+    }
+
+    /**
+     * Table tag have to have a Class attribute with "description-table" value.
+     * 
+     * @param {type} htmlCode
+     * @return {String}
+     */
     isTableTagHasRequiredCssClass(htmlCode) {
         var message = "- HTML code contains a Table tag without mandatory \"description-table\" CSS class.";
-        var regularExpressionOfTable = new RegExp("<TABLE");
-        var regularExpressionOfMandatoryClass = new RegExp("<TABLE\\s+CLASS=(\"|'|)DESCRIPTION\-TABLE(\"|'|)");
-        
-        if (regularExpressionOfTable.test(htmlCode)
-                && !regularExpressionOfMandatoryClass.test(htmlCode)) {
+        var regexpOfTable = new RegExp("<TABLE");
+        var regexpOfMandatoryClass = new RegExp("<TABLE\\s+CLASS=(\"|'|)DESCRIPTION\-TABLE(\"|'|)");
+
+        if (regexpOfTable.test(htmlCode)
+                && !regexpOfMandatoryClass.test(htmlCode)) {
             return message;
         }
 
@@ -89,8 +175,8 @@ class HtmlCodeValidator {
      */
     isTableTagHasTdStrongTagsSequence(htmlCode) {
         var message = "- HTML code contains a Table tag with \"<td><strong>\" tags sequence that have to be replaced with Th tag.";
-        var regularExpression = new RegExp("<TD><STRONG>|</STRONG></TD>");
-        if (regularExpression.test(htmlCode)) {
+        var regexp = new RegExp("<TD><STRONG>|</STRONG></TD>");
+        if (regexp.test(htmlCode)) {
             return message;
         }
 
@@ -105,8 +191,8 @@ class HtmlCodeValidator {
      */
     isTableTagHasTdTagInsideTheadTag(htmlCode) {
         var message = "- HTML code contains a Table tag with Thead tag and Td tag inside it.";
-        var regularExpression = new RegExp("<THEAD[^>]*>[^<]*<TR[^>]*>[^<]*<TD[^>]*>", "s");
-        if (regularExpression.test(htmlCode)) {
+        var regexp = new RegExp("<THEAD[^>]*>[^<]*<TR[^>]*>[^<]*<TD[^>]*>", "s");
+        if (regexp.test(htmlCode)) {
             return message;
         }
 
@@ -121,8 +207,8 @@ class HtmlCodeValidator {
      */
     isHtmlCodeContainsTwiceEscapedHtmlSymbolCode(htmlCode) {
         var message = "- HTML code contains twice escaped symbol codes like &amp;#160; that should be replaced with &#160;.";
-        var regularExpression = new RegExp("&AMP;#[0-9a-zA-Z]{1,8};");
-        if (regularExpression.test(htmlCode)) {
+        var regexp = new RegExp("&AMP;#[0-9a-zA-Z]{1,8};");
+        if (regexp.test(htmlCode)) {
             return message;
         }
 
@@ -137,8 +223,8 @@ class HtmlCodeValidator {
      */
     isHtmlCodeContainsHiddenElements(htmlCode) {
         var message = "- HTML code contains hidden elements like <span style=\"display: none;\">. Such elements should be removed.";
-        var regularExpression = new RegExp("DISPLAY\\s*:\\s*NONE");
-        if (regularExpression.test(htmlCode)) {
+        var regexp = new RegExp("DISPLAY\\s*:\\s*NONE");
+        if (regexp.test(htmlCode)) {
             return message;
         }
 
@@ -153,8 +239,8 @@ class HtmlCodeValidator {
      */
     isHtmlCodeContainsBrokenCharacterEncoding(htmlCode) {
         var message = "- HTML code contains broken character encoding like \"�drive\".";
-        var regularExpression = new RegExp("�");
-        if (regularExpression.test(htmlCode)) {
+        var regexp = new RegExp("�");
+        if (regexp.test(htmlCode)) {
             return message;
         }
 
@@ -209,8 +295,8 @@ class HtmlCodeValidator {
      */
     isHtmlCodeContainsIntellectualPropertySymbolsOrCodes(htmlCode) {
         var message = "- HTML code contains intellectual property symbols or codes.";
-        var regularExpression = new RegExp("™|&TRADE;|&#8482;|&#X2122;|®|&REG;|&#174;|©|&COPY;|&#169;|&#00A9;|℗|&#8471;|&#2117;|℠|&#8480;|&#2120;");
-        if (regularExpression.test(htmlCode)) {
+        var regexp = new RegExp("™|&TRADE;|&#8482;|&#X2122;|®|&REG;|&#174;|©|&COPY;|&#169;|&#00A9;|℗|&#8471;|&#2117;|℠|&#8480;|&#2120;");
+        if (regexp.test(htmlCode)) {
             return message;
         }
 
@@ -225,8 +311,8 @@ class HtmlCodeValidator {
      */
     isHtmlCodeContainsEmptyTags(htmlCode) {
         var message = "- HTML code contains empty tags like \"<p></p>\".";
-        var regularExpression = new RegExp("<P[^>]*>\\s*</P>|<SPAN[^>]*>\\s*</SPAN>|<DIV[^>]*>\\s*</DIV>|<UL[^>]*>\\s*</UL>|<LI[^>]*>\\s*</LI>|<DD[^>]*>\\s*</DD>|<DT[^>]*>\\s*</DT>");
-        if (regularExpression.test(htmlCode)) {
+        var regexp = new RegExp("<P[^>]*>\\s*</P>|<SPAN[^>]*>\\s*</SPAN>|<DIV[^>]*>\\s*</DIV>|<UL[^>]*>\\s*</UL>|<LI[^>]*>\\s*</LI>|<DD[^>]*>\\s*</DD>|<DT[^>]*>\\s*</DT>");
+        if (regexp.test(htmlCode)) {
             return message;
         }
 
@@ -457,7 +543,7 @@ class HtmlCodeValidator {
     isHtmlCodeContainsClassAttribute(htmlCode) {
         // Table tag allowed to have a Class attribute with "description-table" value.
         htmlCode = htmlCode.replace(/<TABLE\s+CLASS=(\"|'|)DESCRIPTION\-TABLE(\"|'|)/g, "");
-        
+
         return this.isHtmlCodeContainsTheAttribute(htmlCode, "CLASS");
     }
 
@@ -512,8 +598,8 @@ class HtmlCodeValidator {
     isHtmlCodeContainsTheAttribute(htmlCode, attributeName) {
         var message = "- HTML code contains "
                 + this.capitalizeFirstLetter(attributeName) + " attribute(s).";
-        var regularExpression = new RegExp(" " + attributeName + "=\"[^\"]+\"| " + attributeName + "=''[^'']+''| " + attributeName + "=[^ ]+");
-        if (regularExpression.test(htmlCode)) {
+        var regexp = new RegExp(" " + attributeName + "=\"[^\"]+\"| " + attributeName + "=''[^'']+''| " + attributeName + "=[^ ]+");
+        if (regexp.test(htmlCode)) {
             return message;
         }
 
