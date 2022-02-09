@@ -8,6 +8,14 @@
  */
 class HtmlCodeValidator {
 
+    isCodePrepared = false;
+    
+    prepareHtmlCode(htmlCode) {
+        htmlCode = htmlCode.toUpperCase();
+        
+        return htmlCode;
+    }
+
     /**
      * Validate given HTML code against all rules.
      * 
@@ -16,7 +24,9 @@ class HtmlCodeValidator {
      */
     validateHtmlCode(htmlCode) {
         var foundIssues = new Array();
-        htmlCode = htmlCode.toUpperCase();
+        
+        htmlCode = this.prepareHtmlCode(htmlCode);
+        this.isCodePrepared = true;
 
         // Look for miscellaneous issues in the HTML code.
         foundIssues.push(this.isHtmlCodeContainsIntellectualPropertySymbolsOrCodes(htmlCode));
@@ -27,6 +37,7 @@ class HtmlCodeValidator {
         foundIssues.push(this.isHtmlCodeContainsNotClosedTags(htmlCode));
         foundIssues.push(this.isHtmlCodeStartsAndEndsWithTags(htmlCode));
         foundIssues.push(this.isHtmlCodeContainsWrongNestedTags(htmlCode));
+        foundIssues.push(this.isHtmlCodeTooShort(htmlCode));
 
         // Check validity of complex Table HTML tags in the HTML code.
         foundIssues.push(this.isTableTagHasRequiredCssClass(htmlCode));
@@ -60,7 +71,8 @@ class HtmlCodeValidator {
 
         // Remove empty elements from the result array.
         foundIssues = foundIssues.filter(Boolean);
-
+        
+        this.isCodePrepared = false;
         return foundIssues;
     }
 
@@ -71,6 +83,10 @@ class HtmlCodeValidator {
      * @return {String}
      */
     isHtmlCodeStartsAndEndsWithTags(htmlCode) {
+        if(!this.isCodePrepared) {
+            htmlCode = this.prepareHtmlCode(htmlCode);
+        }
+        
         var message = "- HTML code has to start and end with HTML tags.";
         var regexpOfBeginTag = new RegExp("^<[^>]+>");
         var regexpOfFinishTag = new RegExp("<[^>]+>$");
@@ -84,16 +100,40 @@ class HtmlCodeValidator {
     }
 
     /**
+     * HTML code is too short. For example "<p>The description</p>".
+     * 
+     * @param {type} htmlCode
+     * @return {String}
+     */
+    isHtmlCodeTooShort(htmlCode) {
+        if(!this.isCodePrepared) {
+            htmlCode = this.prepareHtmlCode(htmlCode);
+        }
+        
+        var message = "- HTML code is too short. For example \"<p>The description</p>\".";
+
+        if (htmlCode.length <= 30) {
+            return message;
+        }
+
+        return null;
+    }
+
+    /**
      * HTML code contains wrong nested tags. For example "<p><table>...</table></p>".
      * 
      * @param {type} htmlCode
      * @return {String}
      */
     isHtmlCodeContainsWrongNestedTags(htmlCode) {
+        if(!this.isCodePrepared) {
+            htmlCode = this.prepareHtmlCode(htmlCode);
+        }
+        
         var message = "- HTML code contains wrong nested tags like \"<p><table>...</table></p>\".";
 
         var regexpOfPNestedPTags = new RegExp("<P( [^>]*)?>[^<]*<P( [^>]*)?>");
-        
+
         // Table structures nested into P tag.
         var regexpOfPNestedTableTags = new RegExp("<P( [^>]*)?>[^<]*<TABLE( [^>]*)?>");
         var regexpOfPNestedTrTags = new RegExp("<P( [^>]*)?>[^<]*<TR( [^>]*)?>");
@@ -120,7 +160,7 @@ class HtmlCodeValidator {
 
         if (
                 regexpOfPNestedPTags.test(htmlCode)
-        
+
                 || regexpOfPNestedTableTags.test(htmlCode)
                 || regexpOfPNestedTrTags.test(htmlCode)
                 || regexpOfPNestedTdTags.test(htmlCode)
@@ -155,6 +195,10 @@ class HtmlCodeValidator {
      * @return {String}
      */
     isTableTagHasRequiredCssClass(htmlCode) {
+        if(!this.isCodePrepared) {
+            htmlCode = this.prepareHtmlCode(htmlCode);
+        }
+        
         var message = "- HTML code contains a Table tag without mandatory \"description-table\" CSS class.";
         var regexpOfTable = new RegExp("<TABLE");
         var regexpOfMandatoryClass = new RegExp("<TABLE\\s+CLASS=(\"|'|)DESCRIPTION\-TABLE(\"|'|)");
@@ -174,8 +218,13 @@ class HtmlCodeValidator {
      * @return {String}
      */
     isTableTagHasTdStrongTagsSequence(htmlCode) {
+        if(!this.isCodePrepared) {
+            htmlCode = this.prepareHtmlCode(htmlCode);
+        }
+        
         var message = "- HTML code contains a Table tag with \"<td><strong>\" tags sequence that have to be replaced with Th tag.";
         var regexp = new RegExp("<TD><STRONG>|</STRONG></TD>");
+        
         if (regexp.test(htmlCode)) {
             return message;
         }
@@ -190,8 +239,13 @@ class HtmlCodeValidator {
      * @return {String}
      */
     isTableTagHasTdTagInsideTheadTag(htmlCode) {
+        if(!this.isCodePrepared) {
+            htmlCode = this.prepareHtmlCode(htmlCode);
+        }
+        
         var message = "- HTML code contains a Table tag with Thead tag and Td tag inside it.";
         var regexp = new RegExp("<THEAD[^>]*>[^<]*<TR[^>]*>[^<]*<TD[^>]*>", "s");
+        
         if (regexp.test(htmlCode)) {
             return message;
         }
@@ -206,8 +260,13 @@ class HtmlCodeValidator {
      * @return {String}
      */
     isHtmlCodeContainsTwiceEscapedHtmlSymbolCode(htmlCode) {
+        if(!this.isCodePrepared) {
+            htmlCode = this.prepareHtmlCode(htmlCode);
+        }
+        
         var message = "- HTML code contains twice escaped symbol codes like &amp;#160; that should be replaced with &#160;.";
         var regexp = new RegExp("&AMP;#[0-9a-zA-Z]{1,8};");
+        
         if (regexp.test(htmlCode)) {
             return message;
         }
@@ -222,8 +281,13 @@ class HtmlCodeValidator {
      * @return {String}
      */
     isHtmlCodeContainsHiddenElements(htmlCode) {
+        if(!this.isCodePrepared) {
+            htmlCode = this.prepareHtmlCode(htmlCode);
+        }
+        
         var message = "- HTML code contains hidden elements like <span style=\"display: none;\">. Such elements should be removed.";
         var regexp = new RegExp("DISPLAY\\s*:\\s*NONE");
+        
         if (regexp.test(htmlCode)) {
             return message;
         }
@@ -238,6 +302,10 @@ class HtmlCodeValidator {
      * @return {String}
      */
     isHtmlCodeContainsBrokenCharacterEncoding(htmlCode) {
+        if(!this.isCodePrepared) {
+            htmlCode = this.prepareHtmlCode(htmlCode);
+        }
+        
         var message = "- HTML code contains broken character encoding like \"�drive\".";
         var regexp = new RegExp("�");
         if (regexp.test(htmlCode)) {
@@ -254,6 +322,10 @@ class HtmlCodeValidator {
      * @return {String}
      */
     isHtmlCodeContainsNotClosedTags(htmlCode) {
+        if(!this.isCodePrepared) {
+            htmlCode = this.prepareHtmlCode(htmlCode);
+        }
+        
         var message = "- HTML code contains not closed pair of tags like \"<p><p>Hello world</p>\".";
         for (let tagName of ["P", "A", "UL", "LI", "SPAN", "DIV", "TD", "TR", "TABLE",
             "TH", "DD", "DT"]) {
@@ -266,6 +338,10 @@ class HtmlCodeValidator {
     }
 
     isAllTagsClosed(tagName, htmlCode) {
+        if(!this.isCodePrepared) {
+            htmlCode = this.prepareHtmlCode(htmlCode);
+        }
+        
         let openTagsRegexp = new RegExp("<" + tagName + "[ >]", "g");
         let openTagsMatch = htmlCode.match(openTagsRegexp);
         let numberOfOpenTags = 0;
@@ -294,8 +370,13 @@ class HtmlCodeValidator {
      * @return {String}
      */
     isHtmlCodeContainsIntellectualPropertySymbolsOrCodes(htmlCode) {
+        if(!this.isCodePrepared) {
+            htmlCode = this.prepareHtmlCode(htmlCode);
+        }
+        
         var message = "- HTML code contains intellectual property symbols or codes.";
         var regexp = new RegExp("™|&TRADE;|&#8482;|&#X2122;|®|&REG;|&#174;|©|&COPY;|&#169;|&#00A9;|℗|&#8471;|&#2117;|℠|&#8480;|&#2120;");
+        
         if (regexp.test(htmlCode)) {
             return message;
         }
@@ -310,8 +391,13 @@ class HtmlCodeValidator {
      * @return {String}
      */
     isHtmlCodeContainsEmptyTags(htmlCode) {
+        if(!this.isCodePrepared) {
+            htmlCode = this.prepareHtmlCode(htmlCode);
+        }
+        
         var message = "- HTML code contains empty tags like \"<p></p>\".";
         var regexp = new RegExp("<P[^>]*>\\s*</P>|<SPAN[^>]*>\\s*</SPAN>|<DIV[^>]*>\\s*</DIV>|<UL[^>]*>\\s*</UL>|<LI[^>]*>\\s*</LI>|<DD[^>]*>\\s*</DD>|<DT[^>]*>\\s*</DT>");
+        
         if (regexp.test(htmlCode)) {
             return message;
         }
@@ -326,7 +412,12 @@ class HtmlCodeValidator {
      * @return {HtmlCodeValidator.isHtmlCodeContainsImgTag@call;isHtmlCodeContainsTheTag}
      */
     isHtmlCodeContainsImgTag(htmlCode) {
+        if(!this.isCodePrepared) {
+            htmlCode = this.prepareHtmlCode(htmlCode);
+        }
+        
         var response = this.isHtmlCodeContainsTheTag(htmlCode, "IMG");
+        
         if (response !== null) {
             response += " If image(s) seem to be important (diagrams, CAD drawings, etc), then extract their urls and put them in a file for the documents section.";
         }
@@ -341,7 +432,12 @@ class HtmlCodeValidator {
      * @return {HtmlCodeValidator.isHtmlCodeContainsATag@call;isHtmlCodeContainsTheTag}
      */
     isHtmlCodeContainsATag(htmlCode) {
+        if(!this.isCodePrepared) {
+            htmlCode = this.prepareHtmlCode(htmlCode);
+        }
+        
         var response = this.isHtmlCodeContainsTheTag(htmlCode, "A");
+        
         if (response !== null) {
             response += " Links should be removed/transformed taking into consideration their surrounding context.";
         }
@@ -356,7 +452,12 @@ class HtmlCodeValidator {
      * @return {HtmlCodeValidator.isHtmlCodeContainsH1Tag@call;isHtmlCodeContainsTheTag}
      */
     isHtmlCodeContainsH1Tag(htmlCode) {
+        if(!this.isCodePrepared) {
+            htmlCode = this.prepareHtmlCode(htmlCode);
+        }
+        
         var response = this.isHtmlCodeContainsTheTag(htmlCode, "H1");
+        
         if (response !== null) {
             response += " Header(s) should be replaced with H5 tag.";
         }
@@ -371,7 +472,12 @@ class HtmlCodeValidator {
      * @return {HtmlCodeValidator.isHtmlCodeContainsH2Tag@call;isHtmlCodeContainsTheTag}
      */
     isHtmlCodeContainsH2Tag(htmlCode) {
+        if(!this.isCodePrepared) {
+            htmlCode = this.prepareHtmlCode(htmlCode);
+        }
+        
         var response = this.isHtmlCodeContainsTheTag(htmlCode, "H2");
+        
         if (response !== null) {
             response += " Header(s) should be replaced with H5 tag.";
         }
@@ -386,7 +492,12 @@ class HtmlCodeValidator {
      * @return {HtmlCodeValidator.isHtmlCodeContainsH3Tag@call;isHtmlCodeContainsTheTag}
      */
     isHtmlCodeContainsH3Tag(htmlCode) {
+        if(!this.isCodePrepared) {
+            htmlCode = this.prepareHtmlCode(htmlCode);
+        }
+        
         var response = this.isHtmlCodeContainsTheTag(htmlCode, "H3");
+        
         if (response !== null) {
             response += " Header(s) should be replaced with H5 tag.";
         }
@@ -401,7 +512,12 @@ class HtmlCodeValidator {
      * @return {HtmlCodeValidator.isHtmlCodeContainsH4Tag@call;isHtmlCodeContainsTheTag}
      */
     isHtmlCodeContainsH4Tag(htmlCode) {
+        if(!this.isCodePrepared) {
+            htmlCode = this.prepareHtmlCode(htmlCode);
+        }
+        
         var response = this.isHtmlCodeContainsTheTag(htmlCode, "H4");
+        
         if (response !== null) {
             response += " Header(s) should be replaced with H5 tag.";
         }
@@ -416,7 +532,12 @@ class HtmlCodeValidator {
      * @return {HtmlCodeValidator.isHtmlCodeContainsH6Tag@call;isHtmlCodeContainsTheTag}
      */
     isHtmlCodeContainsH6Tag(htmlCode) {
+        if(!this.isCodePrepared) {
+            htmlCode = this.prepareHtmlCode(htmlCode);
+        }
+        
         var response = this.isHtmlCodeContainsTheTag(htmlCode, "H6");
+        
         if (response !== null) {
             response += " Header(s) should be replaced with H5 tag.";
         }
@@ -431,6 +552,10 @@ class HtmlCodeValidator {
      * @return {String}
      */
     isHtmlCodeContainsDivTag(htmlCode) {
+        if(!this.isCodePrepared) {
+            htmlCode = this.prepareHtmlCode(htmlCode);
+        }
+        
         return this.isHtmlCodeContainsTheTag(htmlCode, "DIV");
     }
 
@@ -441,6 +566,10 @@ class HtmlCodeValidator {
      * @return {String}
      */
     isHtmlCodeContainsIframeTag(htmlCode) {
+        if(!this.isCodePrepared) {
+            htmlCode = this.prepareHtmlCode(htmlCode);
+        }
+        
         return this.isHtmlCodeContainsTheTag(htmlCode, "IFRAME");
     }
 
@@ -451,6 +580,10 @@ class HtmlCodeValidator {
      * @return {String}
      */
     isHtmlCodeContainsFrameTag(htmlCode) {
+        if(!this.isCodePrepared) {
+            htmlCode = this.prepareHtmlCode(htmlCode);
+        }
+        
         return this.isHtmlCodeContainsTheTag(htmlCode, "FRAME");
     }
 
@@ -461,6 +594,10 @@ class HtmlCodeValidator {
      * @return {String}
      */
     isHtmlCodeContainsObjectTag(htmlCode) {
+        if(!this.isCodePrepared) {
+            htmlCode = this.prepareHtmlCode(htmlCode);
+        }
+        
         return this.isHtmlCodeContainsTheTag(htmlCode, "OBJECT");
     }
 
@@ -471,6 +608,10 @@ class HtmlCodeValidator {
      * @return {String}
      */
     isHtmlCodeContainsEmbedTag(htmlCode) {
+        if(!this.isCodePrepared) {
+            htmlCode = this.prepareHtmlCode(htmlCode);
+        }
+        
         return this.isHtmlCodeContainsTheTag(htmlCode, "EMBED");
     }
 
@@ -481,6 +622,10 @@ class HtmlCodeValidator {
      * @return {String}
      */
     isHtmlCodeContainsScriptTag(htmlCode) {
+        if(!this.isCodePrepared) {
+            htmlCode = this.prepareHtmlCode(htmlCode);
+        }
+        
         return this.isHtmlCodeContainsTheTag(htmlCode, "SCRIPT");
     }
 
@@ -491,6 +636,10 @@ class HtmlCodeValidator {
      * @return {String}
      */
     isHtmlCodeContainsNoscriptTag(htmlCode) {
+        if(!this.isCodePrepared) {
+            htmlCode = this.prepareHtmlCode(htmlCode);
+        }
+        
         return this.isHtmlCodeContainsTheTag(htmlCode, "NOSCRIPT");
     }
 
@@ -501,6 +650,10 @@ class HtmlCodeValidator {
      * @return {String}
      */
     isHtmlCodeContainsSpanTag(htmlCode) {
+        if(!this.isCodePrepared) {
+            htmlCode = this.prepareHtmlCode(htmlCode);
+        }
+        
         return this.isHtmlCodeContainsTheTag(htmlCode, "SPAN");
     }
 
@@ -511,6 +664,10 @@ class HtmlCodeValidator {
      * @return {String}
      */
     isHtmlCodeContainsSTag(htmlCode) {
+        if(!this.isCodePrepared) {
+            htmlCode = this.prepareHtmlCode(htmlCode);
+        }
+        
         return this.isHtmlCodeContainsTheTag(htmlCode, "S");
     }
 
@@ -521,6 +678,10 @@ class HtmlCodeValidator {
      * @return {String}
      */
     isHtmlCodeContainsStrongTag(htmlCode) {
+        if(!this.isCodePrepared) {
+            htmlCode = this.prepareHtmlCode(htmlCode);
+        }
+        
         return this.isHtmlCodeContainsTheTag(htmlCode, "STRONG");
     }
 
@@ -531,6 +692,10 @@ class HtmlCodeValidator {
      * @return {String}
      */
     isHtmlCodeContainsBTag(htmlCode) {
+        if(!this.isCodePrepared) {
+            htmlCode = this.prepareHtmlCode(htmlCode);
+        }
+        
         return this.isHtmlCodeContainsTheTag(htmlCode, "B");
     }
 
@@ -541,6 +706,10 @@ class HtmlCodeValidator {
      * @return {String}
      */
     isHtmlCodeContainsClassAttribute(htmlCode) {
+        if(!this.isCodePrepared) {
+            htmlCode = this.prepareHtmlCode(htmlCode);
+        }
+        
         // Table tag allowed to have a Class attribute with "description-table" value.
         htmlCode = htmlCode.replace(/<TABLE\s+CLASS=(\"|'|)DESCRIPTION\-TABLE(\"|'|)/g, "");
 
@@ -554,6 +723,10 @@ class HtmlCodeValidator {
      * @return {String}
      */
     isHtmlCodeContainsIdAttribute(htmlCode) {
+        if(!this.isCodePrepared) {
+            htmlCode = this.prepareHtmlCode(htmlCode);
+        }
+        
         return this.isHtmlCodeContainsTheAttribute(htmlCode, "ID");
     }
 
@@ -564,6 +737,10 @@ class HtmlCodeValidator {
      * @return {String}
      */
     isHtmlCodeContainsStyleAttribute(htmlCode) {
+        if(!this.isCodePrepared) {
+            htmlCode = this.prepareHtmlCode(htmlCode);
+        }
+        
         return this.isHtmlCodeContainsTheAttribute(htmlCode, "STYLE");
     }
 
@@ -575,6 +752,10 @@ class HtmlCodeValidator {
      * @return {String}
      */
     isHtmlCodeContainsTheTag(htmlCode, tagName) {
+        if(!this.isCodePrepared) {
+            htmlCode = this.prepareHtmlCode(htmlCode);
+        }
+        
         var message = "- HTML code contains "
                 + this.capitalizeFirstLetter(tagName) + " tag(s).";
         if (htmlCode.includes("<" + tagName + " ") // Match tag with attributes like <p id="p27">.
@@ -596,9 +777,14 @@ class HtmlCodeValidator {
      * @return {String}
      */
     isHtmlCodeContainsTheAttribute(htmlCode, attributeName) {
+        if(!this.isCodePrepared) {
+            htmlCode = this.prepareHtmlCode(htmlCode);
+        }
+        
         var message = "- HTML code contains "
                 + this.capitalizeFirstLetter(attributeName) + " attribute(s).";
         var regexp = new RegExp(" " + attributeName + "=\"[^\"]+\"| " + attributeName + "=''[^'']+''| " + attributeName + "=[^ ]+");
+        
         if (regexp.test(htmlCode)) {
             return message;
         }
