@@ -22,7 +22,7 @@
 					<h4 class="mt-5 mb-4">MRO additional descriptions validator</h4>
 					<form>
 						File: <input type="file" name="csv-files" id="csv-files" multiple  /><br />
-						<input type="button" id="do-csv-file-parse" class="btn btn-success mt-3" value="Parse .csv file" />
+						<input type="button" id="do-csv-file-parse" class="btn btn-primary mt-3" value="Validate additional descriptions" />
 					</form>
 					
 					<hr />
@@ -42,20 +42,23 @@
 		
 		<script>
 			var LIMIT_FOUND_ISSUES = 1000;
+			var htmlCodeValidator = new HtmlCodeValidator();
+			var issuesCounter = 0;
+			var recordsCounter = 0;
+			
 			$("#do-csv-file-parse").click(function(event) {
 				$("#results").text("");
 				
 				parseCsvFile(
-					","			// Delimiter.
-					, ""		// New line symbol.
-					, "UTF-8"	// File encoding.
-					, true		// Use headers as a map keys.
+					","					// Delimiter.
+					, ""				// New line symbol.
+					, "UTF-8"			// File encoding.
+					, true				// Use headers as a map keys.
+					, $("#csv-files")	// JQuery selector for Input file element. 
 					, stepEventHandler
 				);
 			});
 			
-			var issuesCounter = 0;
-			var recordsCounter = 0;
 			function stepEventHandler(results, parserHandle) {
 				recordsCounter = recordsCounter + 1;
 				if(recordsCounter % 10 == 0) {
@@ -66,7 +69,6 @@
 					return;
 				}
 				
-				htmlCodeValidator = new HtmlCodeValidator();
 				var productId = results.data["ID"];
 				var productDescription = results.data["ADDITIONAL_DESCRIPTION"];
 				
@@ -87,14 +89,10 @@
 				}
 			}
 			
-			function parseCsvFile(delimiterArgument, newlineArgument, encodingArgument, headerArgument, stepEventHandlerArgument) {
-				stepped = 10;
-				chunks = 10;
-				rows = 10;
-				
-				Papa.LocalChunkSize = 10;
-				Papa.RemoteChunkSize = 10;
-				var files = $('#csv-files')[0].files;
+			function parseCsvFile(delimiterArgument, newlineArgument, encodingArgument, headerArgument, inputFiles, stepEventHandlerArgument) {
+				Papa.LocalChunkSize = 5000000;
+				Papa.RemoteChunkSize = 5000000;
+				var files = inputFiles[0].files;
 				
 				var config = {
 					// Common settings.
@@ -108,9 +106,11 @@
 					worker: false,
 					download: false,
 					fastMode: false,
-					skipEmptyLines: false,
+					skipEmptyLines: true,
 					preview: 0,
 					comments: null,
+					quotes: true,
+					quoteChar: "\"",
 					
 					// Event handlers.
 					complete: completeEventHandler,
@@ -122,7 +122,7 @@
 		
 		
 				if (files.length > 0) {
-					if (chunks == 0 && stepped == 0) {
+					if (Papa.LocalChunkSize == 0) {
 						for (var i = 0; i < files.length; i++) {
 							if (files[i].size > 1024 * 1024 * 10) {
 								alert("A file you've selected is larger than 10 MB; please choose to stream or chunk the input to prevent the browser from crashing.");
@@ -131,7 +131,7 @@
 						}
 					}
 		
-					$('#csv-files').parse({
+					inputFiles.parse({
 						config: config,
 						before: function(file, inputElem) {
 							console.log("Parsing file:", file);
@@ -145,19 +145,13 @@
 				}
 			
 				function errorEventHandler(error, file) {
-					alert("ERROR:", error, file);
+					console.log("ERROR:", error, file);
 				}
 				
 				function completeEventHandler() {
-					end = performance.now();
-					if(!$('#stream').prop('checked')
-							&& !$('#chunk').prop('checked')
-							&& arguments[0]
-							&& arguments[0].data) {
-						rows = arguments[0].data.length;
-					}
-				
-					$("#results").append("\n\n<strong>.csv file with product additional descriptions was completely validated.</strong>");
+					console.log("Finished input (async). ", arguments);
+					$("#processed-records").html(recordsCounter);
+					alert("File has been validated");
 				}
 			}
 		</script>
