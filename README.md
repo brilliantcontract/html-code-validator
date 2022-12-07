@@ -9,13 +9,13 @@ In order to import macros into LibreOffice Calc select in main menu __Tools -> M
 
 If you need any help with tuning of a Libre Office please contact me.
 
+Online tools:
+- HTML code real time viewer http://test3.mrosupply.com/page/html-code-real-time-viewer/ (doesn't work currently)
+- HTML code validator http://test3.mrosupply.com/page/html-code-validator/
+- HTML code tide http://test3.mrosupply.com/page/html-code-tide/
+- MRO additional descriptions validator http://test3.mrosupply.com/page/mro-additional-descriptions-validator/
 
-
-
-
-- HTML code real time viewer https://brilliantcontract.net/utilities/utilities/html-viewer.html
-- HTML code validator https://brilliantcontract.net/utilities/utilities/html-code-validator.html
+Files:
 - LibreOffice macros to formatting HTML code https://github.com/brilliantcontract/html-code-validator/blob/master/libre-office-macros.bas
 - Oracle database package to formatting HTML code https://github.com/brilliantcontract/html-code-validator/tree/master/oracle-plsql-package
-- MRO additional descriptions validator https://brilliantcontract.net/utilities/utilities/mro-additional-descriptions-validator.html
 
