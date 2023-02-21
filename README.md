@@ -9,7 +9,7 @@ In order to import macros into LibreOffice Calc select in main menu __Tools -> M
 
 If you need any help with tuning of a Libre Office please contact me.
 
-Online tools  (online currently not available):
+Online tools:
 - HTML code real time viewer http://4266947.atwebpages.com/html-code-viewer.html
 - HTML code validator http://4266947.atwebpages.com/html-code-validator.html
 - MRO additional descriptions validator http://4266947.atwebpages.com/mro-additional-descriptions-validator.html
