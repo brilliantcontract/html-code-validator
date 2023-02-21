@@ -10,10 +10,10 @@ In order to import macros into LibreOffice Calc select in main menu __Tools -> M
 If you need any help with tuning of a Libre Office please contact me.
 
 Online tools  (online currently not available):
-- HTML code real time viewer http://test3.mrosupply.com/page/html-code-real-time-viewer/
-- HTML code validator http://test3.mrosupply.com/page/html-code-validator/
-- HTML code tide http://test3.mrosupply.com/page/html-code-tide/
-- MRO additional descriptions validator http://test3.mrosupply.com/page/mro-additional-descriptions-validator/
+- HTML code real time viewer http://4266947.atwebpages.com/html-code-real-time-viewer/
+- HTML code validator http://4266947.atwebpages.com/html-code-validator/
+- HTML code tide http://4266947.atwebpages.com/html-code-tide/
+- MRO additional descriptions validator http://4266947.atwebpages.com/mro-additional-descriptions-validator/
 
 Files:
 - LibreOffice macros to formatting HTML code https://github.com/brilliantcontract/html-code-validator/blob/master/libre-office-macros.bas
